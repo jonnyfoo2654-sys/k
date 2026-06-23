@@ -1,0 +1,1 @@
+namespace QTO.Core { public class QuantityItem { public string Layer {get;set;}=""; public string ObjectType {get;set;}=""; public double Quantity {get;set;} } }

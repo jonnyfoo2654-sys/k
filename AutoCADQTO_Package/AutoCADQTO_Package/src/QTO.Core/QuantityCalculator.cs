@@ -1,0 +1,1 @@
+using System.Collections.Generic; namespace QTO.Core { public class QuantityCalculator { public List<QuantityItem> Items {get;}=new(); } }

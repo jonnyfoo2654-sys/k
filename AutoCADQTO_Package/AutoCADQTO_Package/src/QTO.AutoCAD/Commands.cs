@@ -1,0 +1,1 @@
+namespace QTO.AutoCAD { public class Commands { public void QTO() { /* AutoCAD command entry */ } } }

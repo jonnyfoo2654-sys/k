@@ -1,0 +1,1 @@
+using System.Collections.Generic; using System.IO; using QTO.Core; namespace QTO.Export { public static class CsvExporter { public static void Export(string p, IEnumerable<QuantityItem> items){ using var sw=new StreamWriter(p); sw.WriteLine("Layer,ObjectType,Quantity"); foreach(var i in items) sw.WriteLine($"{i.Layer},{i.ObjectType},{i.Quantity}"); } } }
