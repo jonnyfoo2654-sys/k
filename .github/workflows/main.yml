@@ -2,13 +2,9 @@ name: Build AutoCAD QTO
 
 on:
   push:
-    branches:
-      - main
-
+    branches: [ "main" ]
   pull_request:
-    branches:
-      - main
-
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -18,24 +14,51 @@ jobs:
 
     steps:
 
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup .NET Framework Build Tools
-      uses: microsoft/setup-msbuild@v2
+      - name: List repository files
+        run: |
+          echo "Repository contents:"
+          dir
+          echo ""
+          echo "Recursive listing:"
+          dir /s
 
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v2
+      - name: Check if solution exists
+        shell: pwsh
+        run: |
+          $sln = Get-ChildItem -Recurse -Filter *.sln
 
-    - name: Restore Packages
-      run: nuget restore AutoCADQTO.sln
+          if ($sln.Count -eq 0) {
+            Write-Error "No .sln file found in repository"
+            exit 1
+          }
 
-    - name: Build Solution
-      run: msbuild AutoCADQTO.sln /p:Configuration=Release
+          echo "Solution found:"
+          $sln.FullName
 
-    - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: AutoCADQTO-Build
-        path: |
-          **/bin/Release/**
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore packages
+        shell: pwsh
+        run: |
+          $sln = (Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1).FullName
+          nuget restore "$sln"
+
+      - name: Build solution
+        shell: pwsh
+        run: |
+          $sln = (Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1).FullName
+          msbuild "$sln" /p:Configuration=Release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoCADQTO
+          path: |
+            **/bin/Release/**
