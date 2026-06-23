@@ -2,9 +2,6 @@ name: Build AutoCAD QTO
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -14,51 +11,40 @@ jobs:
 
     steps:
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: List repository files
-        run: |
-          echo "Repository contents:"
-          dir
-          echo ""
-          echo "Recursive listing:"
-          dir /s
+    - name: Show repository files
+      shell: pwsh
+      run: |
+        Get-ChildItem -Recurse
 
-      - name: Check if solution exists
-        shell: pwsh
-        run: |
-          $sln = Get-ChildItem -Recurse -Filter *.sln
+    - name: Find solution
+      shell: pwsh
+      run: |
+        $sln = Get-ChildItem -Recurse -Filter *.sln
 
-          if ($sln.Count -eq 0) {
-            Write-Error "No .sln file found in repository"
-            exit 1
-          }
+        if ($null -eq $sln) {
+          Write-Host "No solution file found"
+          exit 1
+        }
 
-          echo "Solution found:"
-          $sln.FullName
+        Write-Host "Found:"
+        $sln.FullName
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
 
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v2
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
 
-      - name: Restore packages
-        shell: pwsh
-        run: |
-          $sln = (Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1).FullName
-          nuget restore "$sln"
+    - name: Restore
+      shell: pwsh
+      run: |
+        $sln = (Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1).FullName
+        nuget restore "$sln"
 
-      - name: Build solution
-        shell: pwsh
-        run: |
-          $sln = (Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1).FullName
-          msbuild "$sln" /p:Configuration=Release
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: AutoCADQTO
-          path: |
-            **/bin/Release/**
+    - name: Build
+      shell: pwsh
+      run: |
+        $sln = (Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1).FullName
+        msbuild "$sln" /p:Configuration=Release
